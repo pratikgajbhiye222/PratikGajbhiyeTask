@@ -1,0 +1,9 @@
+{
+  "data": {
+    "userHolding": [
+      { "symbol": "MAHABANK", "quantity": 990, "ltp": 38.05, "avgPrice": 35, "close": 40 },
+      { "symbol": "ICICI", "quantity": 100, "ltp": 118.25, "avgPrice": 110, "close": 105 },
+      { "symbol": "SBI", "quantity": 150, "ltp": 550.05, "avgPrice": 501, "close": 590 }
+    ]
+  }
+}
