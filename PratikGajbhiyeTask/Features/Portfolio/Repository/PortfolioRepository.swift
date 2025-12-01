@@ -24,30 +24,25 @@ final class PortfolioRepository: PortfolioRepositoryProtocol {
     private let cacheURL: URL
     private(set) var lastDataSource: DataSource?
     private(set) var lastUpdated: Date?
+    private let preferNetworkFirst: Bool
 
-    init(client: HTTPClientProtocol = HTTPClient()) {
+    init(client: HTTPClientProtocol = HTTPClient(), preferNetworkFirst: Bool = true) {
         self.client = client
+        self.preferNetworkFirst = preferNetworkFirst
         let caches = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
         self.cacheURL = caches.appendingPathComponent("portfolio_cache.json")
     }
 
     func fetchHoldings(completion: @escaping (Result<[Holding], Error>) -> Void) {
-        if !NetworkMonitor.shared.isOnline {
-            if let cached = loadCache() {
-                lastDataSource = .cache
-                completion(.success(cached))
-                return
-            }
-            if let seeded = loadSeed() {
-                lastDataSource = .seed
-                completion(.success(seeded))
-                return
-            }
+        if !preferNetworkFirst && !NetworkMonitor.shared.isOnline {
+            if let cached = loadCache() { lastDataSource = .cache; completion(.success(cached)); return }
+            if let seeded = loadSeed() { lastDataSource = .seed; completion(.success(seeded)); return }
         }
         client.get(endpoint) { [weak self] (result: Result<PortfolioResponse, Error>) in
             switch result {
             case .success(let response):
                 let holdings = response.data.userHolding
+                print("Network holdings: \(holdings.count)")
                 self?.persistCache(holdings)
                 self?.lastDataSource = .network
                 completion(.success(holdings))
